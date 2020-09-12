@@ -1,23 +1,21 @@
 #!/bin/bash
 
-indent() { sed 's/^/  /'; }
-
-
 which docker
-docker info | indent
-env | indent
+docker info
+env
 
 # setup docker hook
+# this works 20200912 on docker hub automated build
 cp docker /usr/local/bin
 which docker
-env | indent
-docker info | indent
+env
+docker info
 
+# maybe not needed
 export PATH=$PWD:$PATH
 which docker
-env | indent
-docker info | indent
-exit
+env
+docker info
 
 
 TARGET=$(basename $DOCKER_REPO)
