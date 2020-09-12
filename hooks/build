@@ -1,6 +1,15 @@
 #!/bin/bash
 
 docker info
+which docker
+env
+
+# setup docker hook
+sudo cp docker /usr/local/bin
+which docker
+env
+docker info
+
 
 TARGET=$(basename $DOCKER_REPO)
 cd $TARGET
