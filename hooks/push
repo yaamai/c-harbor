@@ -6,21 +6,25 @@ cred=$(echo $DOCKERCFG | python3 -c 'import sys,json; print(json.loads(sys.stdin
 
 # docker push $IMAGE_NAME
 for i in $(cat); do
-  name=$(echo $i | cut -d/ -f2 | cut -d: -f1)
-  docker tag $i yaamai/${name}:latest
-  /usr/bin/docker push yaamai/${name}:latest
+  name=$(echo $i | cut -d/ -f2)
+
+  docker tag ${i}:dev-amd64 yaamai/${name}:dev-amd64
+  docker tag ${i}:dev-arm64 yaamai/${name}:dev-arm64
+
+  /usr/bin/docker push yaamai/${name}:dev-arm64 || true
+  /usr/bin/docker push yaamai/${name}:dev-amd64 || true
 done << EOF
-goharbor/redis-photon:dev
-goharbor/harbor-registryctl:dev
-goharbor/registry-photon:dev
-goharbor/nginx-photon:dev
-goharbor/harbor-log:dev
-goharbor/harbor-jobservice:dev
-goharbor/harbor-core:dev
-goharbor/harbor-portal:dev
-goharbor/harbor-db:dev
-goharbor/prepare:dev
-goharbor/harbor-chartserver-base:dev
-goharbor/swagger:v0.21.0
+goharbor/chartmuseum-photon
+goharbor/redis-photon
+goharbor/trivy-adapter-photon
+goharbor/harbor-registryctl
+goharbor/registry-photon
+goharbor/nginx-photon
+goharbor/harbor-log
+goharbor/harbor-jobservice
+goharbor/harbor-core
+goharbor/harbor-portal
+goharbor/harbor-db
+goharbor/prepare
 EOF
 

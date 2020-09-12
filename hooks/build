@@ -1,22 +1,5 @@
 #!/bin/bash
 
-which docker
-docker info
-env
-
-# setup docker hook
-# this works 20200912 on docker hub automated build
-cp docker /usr/local/bin
-which docker
-env
-docker info
-
-# maybe not needed
-export PATH=$PWD:$PATH
-which docker
-env
-docker info
-
 BUILD_ARCH=aarch64
 QEMU_USER_STATIC_ARCH=$([ "${BUILD_ARCH}" == "armhf" ] && echo "${BUILD_ARCH::-2}" || echo "${BUILD_ARCH}")
 QEMU_USER_STATIC_DOWNLOAD_URL="https://github.com/multiarch/qemu-user-static/releases/download"
@@ -27,7 +10,6 @@ QEMU_USER_STATIC_LATEST_TAG=$(curl -s https://api.github.com/repos/multiarch/qem
 curl -SL "${QEMU_USER_STATIC_DOWNLOAD_URL}/${QEMU_USER_STATIC_LATEST_TAG}/x86_64_qemu-${QEMU_USER_STATIC_ARCH}-static.tar.gz" \
     | tar xzv -C /tmp
 docker run --rm --privileged multiarch/qemu-user-static:register --reset
-
 
 TARGET=$(basename $DOCKER_REPO)
 cd $TARGET
