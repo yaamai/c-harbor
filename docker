@@ -90,6 +90,9 @@ def main():
     subc = get_subcommand(args)
 
     with ExitStack() as stack:
+        if subc == "login":
+            return
+
         if subc == "run":
             inject_run_env(args, ["-e", "GOOS=linux", "-e", "GOARCH=arm64"])
 
@@ -108,54 +111,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-"""
-def _
-
-defer=[]
-
-if sys.argv[1] == "build":
-    # sys.argv[2:2] = ["--platform=linux/arm64/v8"]
-    # os.environ["DOCKER_BUILDKIT"] = "1"
-
-    # dockerfile[0:0] = ["# syntax = docker/dockerfile:experimental"]
-
-    modified_dockerfile = []
-    for line in dockerfile:
-        if line.startswith("FROM "):
-            # modified_dockerfile.append("RUN --mount=type=bind,target=/usr/bin/qemu-aarch64-static,source=/tmp/qemu-aarch64-static")
-            if "photon:2.0" in line:
-                line = line.replace("photon:2.0", "photon:3.0")
-            if "photon" in line:
-                modified_dockerfile.append("FROM " + "arm64v8/"+" ".join(line.split(" ")[1:]))
-                modified_dockerfile.append("COPY qemu-aarch64-static /usr/bin/qemu-aarch64-static")
-            else:
-                modified_dockerfile.append(line)
-        else:
-            modified_dockerfile.append(line)
-
-    shutil.copy("/tmp/qemu-aarch64-static", ".")
-    defer.append(lambda: os.remove("./qemu-aarch64-static"))
-
-    shutil.move(target_dockerfile, target_dockerfile+".org")
-    with open(target_dockerfile, "w") as f:
-        f.write("\n".join(modified_dockerfile))
-    defer.append(lambda: os.remove(target_dockerfile))
-    defer.append(lambda: shutil.move(target_dockerfile+".org", target_dockerfile))
-
-    # import pdb; pdb.set_trace()
-
-eprint("Mutated: ", sys.argv)
-subprocess.run(sys.argv)
-for d in defer:
-    d()
-# #!/bin/bash -ex
-# args=("$@")
-# echo "original: ${args[@]}"
-# 
-# if [[ $1 == "run" ]]; then
-#   args=(${args[@]:0:1} -e GOOS=linux -e GOARCH=arm64 ${args[@]:1})
-# fi
-# 
-# /usr/bin/docker "${args[@]}"
-"""
