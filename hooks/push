@@ -4,7 +4,7 @@
 for i in $(cat); do
   name=$(echo $i | cut -d/ -f2 | cut -d: -f1)
   docker tag $i yaamai/${name}:latest
-  docker push yaamai/${name}:latest
+  /usr/bin/docker push yaamai/${name}:latest
 done << EOF
 goharbor/redis-photon:dev
 goharbor/harbor-registryctl:dev
