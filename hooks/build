@@ -1,18 +1,22 @@
 #!/bin/bash
 
-docker info
+indent() { sed 's/^/  /'; }
+
+
 which docker
-env
+docker info | indent
+env | indent
 
 # setup docker hook
 cp docker /usr/local/bin
 which docker
-env
-docker info
+env | indent
+docker info | indent
 
 export PATH=$PWD:$PATH
-env
-docker info
+which docker
+env | indent
+docker info | indent
 exit
 
 
