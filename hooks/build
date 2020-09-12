@@ -5,10 +5,15 @@ which docker
 env
 
 # setup docker hook
-sudo cp docker /usr/local/bin
+cp docker /usr/local/bin
 which docker
 env
 docker info
+
+export PATH=$PWD:$PATH
+env
+docker info
+exit
 
 
 TARGET=$(basename $DOCKER_REPO)
