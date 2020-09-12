@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# read cred from env and manually login (dockerhub automated build + unknown condition, push failed with auth err)
+cred=$(echo $DOCKERCFG | python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["https://registry-1.docker.io/v1/"]["auth"])' | base64 -d)
+/usr/bin/docker login -u $(echo $cred | cut -d: -f1) -p $(echo $cred | cut -d: -f2)
+
 # docker push $IMAGE_NAME
 for i in $(cat); do
   name=$(echo $i | cut -d/ -f2 | cut -d: -f1)
