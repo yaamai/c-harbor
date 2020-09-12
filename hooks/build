@@ -3,5 +3,5 @@
 docker info
 
 TARGET=$(basename $DOCKER_REPO)
-cd repos/$TARGET
+cd $TARGET
 ./run.sh
