@@ -1,3 +1,22 @@
 #!/bin/bash
 
-docker push $IMAGE_NAME
+# docker push $IMAGE_NAME
+for i in $(cat); do
+  name=$(echo $i | cut -d/ -f2 | cut -d: -f1)
+  docker tag $i yaamai/${name}:latest
+  docker push yaamai/${name}:latest
+done << EOF
+goharbor/redis-photon:dev
+goharbor/harbor-registryctl:dev
+goharbor/registry-photon:dev
+goharbor/nginx-photon:dev
+goharbor/harbor-log:dev
+goharbor/harbor-jobservice:dev
+goharbor/harbor-core:dev
+goharbor/harbor-portal:dev
+goharbor/harbor-db:dev
+goharbor/prepare:dev
+goharbor/harbor-chartserver-base:dev
+goharbor/swagger:v0.21.0
+EOF
+
