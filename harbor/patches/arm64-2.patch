@@ -1,0 +1,263 @@
+diff --git a/Makefile b/Makefile
+index 3adf2eb46..075d09711 100644
+--- a/Makefile
++++ b/Makefile
+@@ -60,6 +60,9 @@
+ #   By default DEVFLAG=true, if you want to release new version of Harbor, \
+ #		should setting the flag to false.
+ #				make XXXX -e DEVFLAG=false
++ARCH=arm64
++PLATFORM=linux/arm64/v8
++OS=linux
+ 
+ SHELL := /bin/bash
+ BUILDPATH=$(CURDIR)
+@@ -79,7 +82,7 @@ NOTARYFLAG=false
+ CLAIRFLAG=false
+ TRIVYFLAG=false
+ HTTPPROXY=
+-BUILDBIN=false
++BUILDBIN=true
+ NPM_REGISTRY=https://registry.npmjs.org
+ # enable/disable chart repo supporting
+ CHARTFLAG=false
+@@ -134,7 +137,7 @@ endef
+ 
+ # docker parameters
+ DOCKERCMD=$(shell which docker)
+-DOCKERBUILD=$(DOCKERCMD) build
++DOCKERBUILD=$(DOCKERCMD) build --platform=$(PLATFORM) --build-arg ARCH=$(ARCH)
+ DOCKERRMIMAGE=$(DOCKERCMD) rmi
+ DOCKERPULL=$(DOCKERCMD) pull
+ DOCKERIMASES=$(DOCKERCMD) images
+@@ -334,22 +337,22 @@ check_environment:
+ compile_core: gen_apis
+ 	@echo "compiling binary for core (golang image)..."
+ 	@echo $(GOBUILDPATHINCONTAINER)
+-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATHINCONTAINER) -w $(GOBUILDPATH_CORE) $(GOBUILDIMAGE) $(GOIMAGEBUILD_CORE) -o $(GOBUILDPATHINCONTAINER)/$(GOBUILDMAKEPATH_CORE)/$(CORE_BINARYNAME)
++	@$(DOCKERCMD) run --rm -e GOOS=$(OS) -e GOARCH=$(ARCH) -v $(BUILDPATH):$(GOBUILDPATHINCONTAINER) -w $(GOBUILDPATH_CORE) $(GOBUILDIMAGE) $(GOIMAGEBUILD_CORE) -o $(GOBUILDPATHINCONTAINER)/$(GOBUILDMAKEPATH_CORE)/$(CORE_BINARYNAME)
+ 	@echo "Done."
+ 
+ compile_jobservice:
+ 	@echo "compiling binary for jobservice (golang image)..."
+-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATHINCONTAINER) -w $(GOBUILDPATH_JOBSERVICE) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDPATHINCONTAINER)/$(GOBUILDMAKEPATH_JOBSERVICE)/$(JOBSERVICEBINARYNAME)
++	@$(DOCKERCMD) run --rm -e GOOS=$(OS) -e GOARCH=$(ARCH) -v $(BUILDPATH):$(GOBUILDPATHINCONTAINER) -w $(GOBUILDPATH_JOBSERVICE) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDPATHINCONTAINER)/$(GOBUILDMAKEPATH_JOBSERVICE)/$(JOBSERVICEBINARYNAME)
+ 	@echo "Done."
+ 
+ compile_registryctl:
+ 	@echo "compiling binary for harbor registry controller (golang image)..."
+-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATHINCONTAINER) -w $(GOBUILDPATH_REGISTRYCTL) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDPATHINCONTAINER)/$(GOBUILDMAKEPATH_REGISTRYCTL)/$(REGISTRYCTLBINARYNAME)
++	@$(DOCKERCMD) run --rm -e GOOS=$(OS) -e GOARCH=$(ARCH) -v $(BUILDPATH):$(GOBUILDPATHINCONTAINER) -w $(GOBUILDPATH_REGISTRYCTL) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDPATHINCONTAINER)/$(GOBUILDMAKEPATH_REGISTRYCTL)/$(REGISTRYCTLBINARYNAME)
+ 	@echo "Done."
+ 
+ compile_notary_migrate_patch:
+ 	@echo "compiling binary for migrate patch (golang image)..."
+-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATHINCONTAINER) -w $(GOBUILDPATH_MIGRATEPATCH) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDPATHINCONTAINER)/$(GOBUILDMAKEPATH_NOTARY)/$(MIGRATEPATCHBINARYNAME)
++	@$(DOCKERCMD) run --rm -e GOOS=$(OS) -e GOARCH=$(ARCH) -v $(BUILDPATH):$(GOBUILDPATHINCONTAINER) -w $(GOBUILDPATH_MIGRATEPATCH) $(GOBUILDIMAGE) $(GOIMAGEBUILD_COMMON) -o $(GOBUILDPATHINCONTAINER)/$(GOBUILDMAKEPATH_NOTARY)/$(MIGRATEPATCHBINARYNAME)
+ 	@echo "Done."
+ 
+ compile: check_environment versions_prepare compile_core compile_jobservice compile_registryctl compile_notary_migrate_patch
+@@ -383,8 +386,7 @@ build:
+ build_base_docker:
+ 	@for name in chartserver clair clair-adapter trivy-adapter core db jobservice log nginx notary-server notary-signer portal prepare redis registry registryctl; do \
+ 		echo $$name ; \
+-		$(DOCKERBUILD) --pull -f $(MAKEFILEPATH_PHOTON)/$$name/Dockerfile.base -t $(BASEIMAGENAMESPACE)/harbor-$$name-base:$(BASEIMAGETAG) . && \
+-		$(PUSHSCRIPTPATH)/$(PUSHSCRIPTNAME) $(BASEIMAGENAMESPACE)/harbor-$$name-base:$(BASEIMAGETAG) $(REGISTRYUSER) $(REGISTRYPASSWORD) || exit 1; \
++		$(DOCKERBUILD) --pull -f $(MAKEFILEPATH_PHOTON)/$$name/Dockerfile.base -t $(BASEIMAGENAMESPACE)/harbor-$$name-base:$(BASEIMAGETAG) . ; \
+ 	done
+ 
+ pull_base_docker:
+diff --git a/make/photon/chartserver/Dockerfile.base b/make/photon/chartserver/Dockerfile.base
+index ecf7b9034..a584a1b23 100644
+--- a/make/photon/chartserver/Dockerfile.base
++++ b/make/photon/chartserver/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install -y shadow sudo >>/dev/null\
+     && tdnf clean all \
+diff --git a/make/photon/clair-adapter/Dockerfile.base b/make/photon/clair-adapter/Dockerfile.base
+index 80b257f60..d8ecf9681 100644
+--- a/make/photon/clair-adapter/Dockerfile.base
++++ b/make/photon/clair-adapter/Dockerfile.base
+@@ -1,7 +1,8 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install -y sudo >>/dev/null\
+     && tdnf clean all \
+     && mkdir /clair-adapter/ \
+     && groupadd -r -g 10000 clair-adapter \
+-    && useradd --no-log-init -m -r -g 10000 -u 10000 clair-adapter
+\ No newline at end of file
++    && useradd --no-log-init -m -r -g 10000 -u 10000 clair-adapter
+diff --git a/make/photon/clair/Dockerfile.base b/make/photon/clair/Dockerfile.base
+index 8f9737450..e0d38d87e 100644
+--- a/make/photon/clair/Dockerfile.base
++++ b/make/photon/clair/Dockerfile.base
+@@ -1,6 +1,7 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install -y git shadow sudo rpm xz python-xml >>/dev/null\
+     && tdnf clean all \
+     && groupadd -r -g 10000 clair \
+-    && useradd --no-log-init -m -g 10000 -u 10000 clair
+\ No newline at end of file
++    && useradd --no-log-init -m -g 10000 -u 10000 clair
+diff --git a/make/photon/core/Dockerfile.base b/make/photon/core/Dockerfile.base
+index 865834fad..139c2619f 100644
+--- a/make/photon/core/Dockerfile.base
++++ b/make/photon/core/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install sudo tzdata -y >> /dev/null \
+     && tdnf clean all \
+diff --git a/make/photon/db/Dockerfile.base b/make/photon/db/Dockerfile.base
+index 3f8e6fdb6..d21f54d1f 100644
+--- a/make/photon/db/Dockerfile.base
++++ b/make/photon/db/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ ENV PGDATA /var/lib/postgresql/data
+ 
+diff --git a/make/photon/jobservice/Dockerfile.base b/make/photon/jobservice/Dockerfile.base
+index 5bbd68138..087b99978 100644
+--- a/make/photon/jobservice/Dockerfile.base
++++ b/make/photon/jobservice/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install sudo tzdata -y >> /dev/null \
+     && tdnf clean all \
+diff --git a/make/photon/log/Dockerfile.base b/make/photon/log/Dockerfile.base
+index b72448130..0b1c8c9df 100644
+--- a/make/photon/log/Dockerfile.base
++++ b/make/photon/log/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install -y cronie rsyslog logrotate shadow tar gzip sudo >> /dev/null\
+     && mkdir /var/spool/rsyslog \
+diff --git a/make/photon/nginx/Dockerfile.base b/make/photon/nginx/Dockerfile.base
+index 8982dc00e..3f275d159 100644
+--- a/make/photon/nginx/Dockerfile.base
++++ b/make/photon/nginx/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install sudo nginx -y >> /dev/null\
+     && tdnf clean all \
+diff --git a/make/photon/notary-server/Dockerfile.base b/make/photon/notary-server/Dockerfile.base
+index da4b03cbe..6ad007210 100644
+--- a/make/photon/notary-server/Dockerfile.base
++++ b/make/photon/notary-server/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install -y shadow sudo \
+     && tdnf clean all \
+diff --git a/make/photon/notary-signer/Dockerfile.base b/make/photon/notary-signer/Dockerfile.base
+index da4b03cbe..6ad007210 100644
+--- a/make/photon/notary-signer/Dockerfile.base
++++ b/make/photon/notary-signer/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install -y shadow sudo \
+     && tdnf clean all \
+diff --git a/make/photon/prepare/Dockerfile.base b/make/photon/prepare/Dockerfile.base
+index c8a1f6bf5..5e730703d 100644
+--- a/make/photon/prepare/Dockerfile.base
++++ b/make/photon/prepare/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+-RUN tdnf install -y python3 python3-pip httpd && tdnf clean all
++RUN tdnf install -y python3 python3-pip httpd
+ RUN pip3 install setuptools && pip3 install pipenv==2018.11.26
+diff --git a/make/photon/redis/Dockerfile.base b/make/photon/redis/Dockerfile.base
+index d800f6a91..eaf80e32a 100644
+--- a/make/photon/redis/Dockerfile.base
++++ b/make/photon/redis/Dockerfile.base
+@@ -1,3 +1,4 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install -y redis sudo && tdnf clean all
+diff --git a/make/photon/registry/Dockerfile.base b/make/photon/registry/Dockerfile.base
+index 0e618e1b8..29039ff36 100644
+--- a/make/photon/registry/Dockerfile.base
++++ b/make/photon/registry/Dockerfile.base
+@@ -1,6 +1,7 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install sudo -y >> /dev/null\
+     && tdnf clean all \
+     && mkdir -p /etc/registry \
+-    && groupadd -r -g 10000 harbor && useradd --no-log-init -m -g 10000 -u 10000 harbor
+\ No newline at end of file
++    && groupadd -r -g 10000 harbor && useradd --no-log-init -m -g 10000 -u 10000 harbor
+diff --git a/make/photon/registryctl/Dockerfile.base b/make/photon/registryctl/Dockerfile.base
+index c53686341..9460ae79f 100644
+--- a/make/photon/registryctl/Dockerfile.base
++++ b/make/photon/registryctl/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install sudo -y >> /dev/null \
+     && tdnf clean all \
+diff --git a/make/photon/trivy-adapter/Dockerfile.base b/make/photon/trivy-adapter/Dockerfile.base
+index 3b38817dc..6e8731344 100644
+--- a/make/photon/trivy-adapter/Dockerfile.base
++++ b/make/photon/trivy-adapter/Dockerfile.base
+@@ -1,4 +1,5 @@
+-FROM photon:2.0
++FROM arm64v8/photon:3.0
++COPY qemu-aarch64-static /usr/bin
+ 
+ RUN tdnf install -y sudo rpm >> /dev/null \
+     && tdnf clean all \
+diff --git a/tools/swagger/Dockerfile b/tools/swagger/Dockerfile
+index 74e5fffab..c6944821b 100644
+--- a/tools/swagger/Dockerfile
++++ b/tools/swagger/Dockerfile
+@@ -1,7 +1,9 @@
+-FROM golang:1.13.8
++FROM arm64v8/golang:1.13.8
++COPY qemu-aarch64-static /usr/bin
+ 
+ ARG SWAGGER_VERSION
+-RUN curl -fsSL -o /usr/bin/swagger https://github.com/go-swagger/go-swagger/releases/download/$SWAGGER_VERSION/swagger_linux_amd64 && chmod +x /usr/bin/swagger
++ARG ARCH
++RUN curl -fsSL -o /usr/bin/swagger https://github.com/go-swagger/go-swagger/releases/download/$SWAGGER_VERSION/swagger_linux_$ARCH && chmod +x /usr/bin/swagger
+ 
+ ENTRYPOINT ["/usr/bin/swagger"]
+ CMD ["--help"]

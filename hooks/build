@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker info
+
+TARGET=$(basename $DOCKER_REPO)
+cd repos/$TARGET
+./run.sh
