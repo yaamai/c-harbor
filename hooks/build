@@ -11,6 +11,9 @@ curl -SL "${QEMU_USER_STATIC_DOWNLOAD_URL}/${QEMU_USER_STATIC_LATEST_TAG}/x86_64
     | tar xzv -C /tmp
 docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
+which wget
+apt-get install -y wget
+
 TARGET=$(basename $DOCKER_REPO)
 cd $TARGET
 ./run.sh

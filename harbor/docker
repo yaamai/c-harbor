@@ -64,6 +64,16 @@ def replace_from_image(dockerfile, target, to):
 
     return modified_dockerfile
 
+def replace_arch_name(dockerfile, target, to):
+    modified_dockerfile = []
+
+    for line in dockerfile:
+        if target in line:
+            line = line.replace(target, to)
+        modified_dockerfile.append(line)
+
+    return modified_dockerfile
+
 def dockerhub_arm64ize(dockerfile, allowed):
     modified_dockerfile = []
 
@@ -101,6 +111,7 @@ def main():
             dockerfile = open(target_dockerfile).read().split("\n")
 
             dockerfile = replace_from_image(dockerfile, "photon:2.0", "photon:3.0")
+            dockerfile = replace_arch_name(dockerfile, "swagger_linux_amd64", "swagger_linux_arm64")
             dockerfile = dockerhub_arm64ize(dockerfile, ["photon", "node", "golang"])
             stack.enter_context(copy_file("/tmp/qemu-aarch64-static", get_docker_build_context(args) + "/qemu-aarch64-static"))
             stack.enter_context(replace_file(target_dockerfile, "\n".join(dockerfile)))
