@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+# pre-pull arm64v8/ image to WA docker pull issues
+docker pull arm64v8/golang@sha256:5aac44732a29bc2feed5f3e35d41afc4dffa1ca3f16863e79eef0af9749db80b
+docker tag arm64v8/golang@sha256:5aac44732a29bc2feed5f3e35d41afc4dffa1ca3f16863e79eef0af9749db80b arm64v8/golang:1.13.8
+
 cred=$(echo $DOCKERCFG | python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["https://registry-1.docker.io/v1/"]["auth"])' | base64 -d)
 
 cd src
