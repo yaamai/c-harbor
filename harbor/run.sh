@@ -1,9 +1,14 @@
 #!/bin/bash -ex
 
+cred=$(echo $DOCKERCFG | python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["https://registry-1.docker.io/v1/"]["auth"])' | base64 -d)
+
 cd src
 
 for stg in gen_apis compile build_base_docker build; do
   make $stg \
+    -e REGISTRYUSER=$(echo $cred | cut -d: -f1) \
+    -e REGISTRYPASSWORD=$(echo $cred | cut -d: -f2) \
+    -e BASEIMAGENAMESPACE=yaamai \
     -e VERSIONTAG=dev-amd64 \
     -e BASEIMAGETAG=dev-amd64 \
     -e PKGVERSIONTAG=dev-amd64 \
@@ -11,7 +16,6 @@ for stg in gen_apis compile build_base_docker build; do
     -e BUILDBIN=true \
     -e TRIVYFLAG=true
   docker images
-  sleep 10
 done
 
 which docker
@@ -21,6 +25,9 @@ which docker
 
 for stg in gen_apis compile build_base_docker build; do
   make $stg \
+    -e REGISTRYUSER=$(echo $cred | cut -d: -f1) \
+    -e REGISTRYPASSWORD=$(echo $cred | cut -d: -f2) \
+    -e BASEIMAGENAMESPACE=yaamai \
     -e VERSIONTAG=dev-arm64 \
     -e BASEIMAGETAG=dev-arm64 \
     -e PKGVERSIONTAG=dev-arm64 \

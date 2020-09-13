@@ -8,8 +8,8 @@ cred=$(echo $DOCKERCFG | python3 -c 'import sys,json; print(json.loads(sys.stdin
 for i in $(cat); do
   name=$(echo $i | cut -d/ -f2)
 
-  docker tag ${i}:dev-amd64 yaamai/${name}:dev-amd64
-  docker tag ${i}:dev-arm64 yaamai/${name}:dev-arm64
+  # docker tag ${i}:dev-amd64 yaamai/${name}:dev-amd64
+  # docker tag ${i}:dev-arm64 yaamai/${name}:dev-arm64
 
   /usr/bin/docker push yaamai/${name}:dev-arm64 || true
   /usr/bin/docker push yaamai/${name}:dev-amd64 || true
