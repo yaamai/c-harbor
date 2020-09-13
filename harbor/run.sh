@@ -16,6 +16,10 @@ for stg in gen_apis compile build_base_docker build; do
     -e BUILDBIN=true \
     -e TRIVYFLAG=true
   docker images
+
+  # fix image name (makefile does not accept)
+  docker tag goharbor/chartmuseum-photon:dev-amd64 yaamai/chartmuseum-photon:dev-amd64 || true
+  docker tag goharbor/trivy-adapter-photon:dev-amd64 yaamai/trivy-adapter-photon:dev-amd64 || true
 done
 
 which docker
@@ -37,5 +41,9 @@ for stg in gen_apis compile build_base_docker build; do
     -e TRIVYFLAG=true \
     -e TRIVY_DOWNLOAD_URL=https://github.com/aquasecurity/trivy/releases/download/v0.11.0/trivy_0.11.0_Linux-ARM64.tar.gz 
   docker images
+
+  # fix image name (makefile does not accept)
+  docker tag goharbor/chartmuseum-photon:dev-arm64 yaamai/chartmuseum-photon:dev-arm64 || true
+  docker tag goharbor/trivy-adapter-photon:dev-arm64 yaamai/trivy-adapter-photon:dev-arm64 || true
 done
 
