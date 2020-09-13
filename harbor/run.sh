@@ -19,7 +19,8 @@ for stg in gen_apis compile build_base_docker build; do
 done
 
 which docker
-cp ../docker /usr/local/bin
+sudo cp ../docker /usr/local/bin || true
+cp ../docker /usr/local/bin || true
 which docker
 
 
