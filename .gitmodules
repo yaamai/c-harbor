@@ -1,6 +1,3 @@
 [submodule "harbor/src"]
 	path = harbor/src
 	url = https://github.com/goharbor/harbor.git
-[submodule "hydra/hydra-maester"]
-	path = hydra/hydra-maester
-	url = https://github.com/ory/hydra-maester.git
