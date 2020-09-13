@@ -1,11 +1,5 @@
 #!/bin/bash
 
-which docker
-cp docker /usr/local/bin
-which docker
-
-cd src
-
 for stg in compile build_base_docker build; do
   make $stg \
     -e VERSIONTAG=dev-amd64 \
@@ -15,7 +9,15 @@ for stg in compile build_base_docker build; do
     -e BUILDBIN=true \
     -e TRIVYFLAG=true
   docker images
+done
 
+which docker
+cp docker /usr/local/bin
+which docker
+
+cd src
+
+for stg in compile build_base_docker build; do
   make $stg \
     -e VERSIONTAG=dev-arm64 \
     -e BASEIMAGETAG=dev-arm64 \
